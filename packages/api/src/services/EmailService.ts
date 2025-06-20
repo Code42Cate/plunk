@@ -3,50 +3,51 @@ import { APP_URI, AWS_SES_CONFIGURATION_SET } from "../app/constants";
 import { ses } from "../util/ses";
 
 export class EmailService {
-	public static async send({
-		from,
-		to,
-		content,
-		reply,
-		headers,
-	}: {
-		from: {
-			name: string;
-			email: string;
-		};
-		reply?: string;
-		to: string[];
-		content: {
-			subject: string;
-			html: string;
-		};
-		headers?: {
-			[key: string]: string;
-		} | null;
-	}) {
-		// Check if the body contains an unsubscribe link
-		const regex = /unsubscribe\/([a-f\d-]+)"/;
-		const containsUnsubscribeLink = content.html.match(regex);
+  public static async send({
+    from,
+    to,
+    content,
+    reply,
+    headers,
+  }: {
+    from: {
+      name: string;
+      email: string;
+    };
+    reply?: string;
+    to: string[];
+    content: {
+      subject: string;
+      html: string;
+    };
+    headers?: {
+      [key: string]: string;
+    } | null;
+  }) {
+    // Check if the body contains an unsubscribe link
+    const regex = /unsubscribe\/([a-f\d-]+)"/;
+    const containsUnsubscribeLink = content.html.match(regex);
 
-		let unsubscribeLink = "";
-		if (containsUnsubscribeLink?.[1]) {
-			const unsubscribeId = containsUnsubscribeLink[1];
-			unsubscribeLink = `List-Unsubscribe: <https://${APP_URI}/unsubscribe/${unsubscribeId}>`;
-		}
+    let unsubscribeLink = "";
+    if (containsUnsubscribeLink?.[1]) {
+      const unsubscribeId = containsUnsubscribeLink[1];
+      unsubscribeLink = `List-Unsubscribe: <https://${APP_URI}/unsubscribe/${unsubscribeId}>`;
+    }
 
-		const rawMessage = `From: ${from.name} <${from.email}>
+    console.log(`INFO: Sending email with subject: ${content.subject} to ${to.join(", ")}`);
+
+    const rawMessage = `From: ${from.name} <${from.email}>
 To: ${to.join(", ")}
 Reply-To: ${reply || from.email}
 Subject: ${content.subject}
 MIME-Version: 1.0
 Content-Type: multipart/alternative; boundary="NextPart"
-${
-	headers
-		? Object.entries(headers)
-				.map(([key, value]) => `${key}: ${value}`)
-				.join("\n")
-		: ""
-}
+${headers
+        ? Object.entries(headers)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join("\n")
+        : ""
+      }
 ${unsubscribeLink}
 
 --NextPart
@@ -57,50 +58,49 @@ ${EmailService.breakLongLines(content.html, 500)}
 --NextPart--
 `;
 
-		const response = await ses.sendRawEmail({
-			Destinations: to,
-			ConfigurationSetName: AWS_SES_CONFIGURATION_SET,
-			RawMessage: {
-				Data: new TextEncoder().encode(rawMessage),
-			},
-			Source: `${from.name} <${from.email}>`,
-		});
+    const response = await ses.sendRawEmail({
+      Destinations: to,
+      ConfigurationSetName: AWS_SES_CONFIGURATION_SET,
+      RawMessage: {
+        Data: new TextEncoder().encode(rawMessage),
+      },
+      Source: `${from.name} <${from.email}>`,
+    });
 
-		if (!response.MessageId) {
-			throw new Error("Could not send email");
-		}
+    if (!response.MessageId) {
+      throw new Error("Could not send email");
+    }
 
-		return { messageId: response.MessageId };
-	}
+    return { messageId: response.MessageId };
+  }
 
-	public static compile({
-		content,
-		footer,
-		contact,
-		project,
-		isHtml,
-	}: {
-		content: string;
+  public static compile({
+    content,
+    footer,
+    contact,
+    project,
+    isHtml,
+  }: {
+    content: string;
 
-		project: {
-			name: string;
-		};
-		contact: {
-			id: string;
-		};
-		footer: {
-			unsubscribe?: boolean;
-		};
-		isHtml?: boolean;
-	}) {
-		const html = content.replace(/<img/g, "<img");
+    project: {
+      name: string;
+    };
+    contact: {
+      id: string;
+    };
+    footer: {
+      unsubscribe?: boolean;
+    };
+    isHtml?: boolean;
+  }) {
+    const html = content.replace(/<img/g, "<img");
 
-		if (isHtml) {
-			return `${html}
+    if (isHtml) {
+      return `${html}
 
-${
-	footer.unsubscribe
-		? ` <table align="center" width="100%" style="max-width: 480px; width: 100%; margin-left: auto; margin-right: auto; font-family: Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; border: 0; cellpadding: 0; cellspacing: 0;" role="presentation">
+${footer.unsubscribe
+          ? ` <table align="center" width="100%" style="max-width: 480px; width: 100%; margin-left: auto; margin-right: auto; font-family: Inter, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'; border: 0; cellpadding: 0; cellspacing: 0;" role="presentation">
       <tbody>
         <tr>
           <td>
@@ -113,11 +113,11 @@ ${
         </tr>
       </tbody>
     </table>`
-		: ""
-}`;
-		}
-		return mjml2html(
-			`<mjml>
+          : ""
+        }`;
+    }
+    return mjml2html(
+      `<mjml>
   <mj-head>
     <mj-font name="Inter" href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" />
     <mj-style inline="inline">
@@ -466,9 +466,8 @@ ${
     </mj-section>
      <mj-section>
       <mj-column>
-        ${
-									footer.unsubscribe
-										? `
+        ${footer.unsubscribe
+        ? `
               <mj-divider border-width="2px" border-color="#f5f5f5"></mj-divider>
               <mj-text align="center">
                 <p style="color: #a3a3a3; text-decoration: none; font-size: 12px; line-height: 1.7142857;">
@@ -476,48 +475,48 @@ ${
                 </p>
               </mj-text>
             `
-										: ""
-								}
+        : ""
+      }
       </mj-column>
     </mj-section>
   </mj-body>
 </mjml>`,
-		).html.replace(/^\s+|\s+$/g, "");
-	}
+    ).html.replace(/^\s+|\s+$/g, "");
+  }
 
-	public static format({ subject, body, data }: { subject: string; body: string; data: Record<string, string> }) {
-		return {
-			subject: subject.replace(/\{\{(.*?)}}/g, (match, key) => {
-				const [mainKey, defaultValue] = key.split("??").map((s: string) => s.trim());
-				return data[mainKey] ?? defaultValue ?? "";
-			}),
-			body: body.replace(/\{\{(.*?)}}/g, (match, key) => {
-				const [mainKey, defaultValue] = key.split("??").map((s: string) => s.trim());
-				if (Array.isArray(data[mainKey])) {
-					return data[mainKey].map((e: string) => `<li>${e}</li>`).join("\n");
-				}
-				return data[mainKey] ?? defaultValue ?? "";
-			}),
-		};
-	}
+  public static format({ subject, body, data }: { subject: string; body: string; data: Record<string, string> }) {
+    return {
+      subject: subject.replace(/\{\{(.*?)}}/g, (match, key) => {
+        const [mainKey, defaultValue] = key.split("??").map((s: string) => s.trim());
+        return data[mainKey] ?? defaultValue ?? "";
+      }),
+      body: body.replace(/\{\{(.*?)}}/g, (match, key) => {
+        const [mainKey, defaultValue] = key.split("??").map((s: string) => s.trim());
+        if (Array.isArray(data[mainKey])) {
+          return data[mainKey].map((e: string) => `<li>${e}</li>`).join("\n");
+        }
+        return data[mainKey] ?? defaultValue ?? "";
+      }),
+    };
+  }
 
-	private static breakLongLines(input: string, maxLineLength: number): string {
-		const lines = input.split("\n");
-		const result = [];
-		for (let line of lines) {
-			while (line.length > maxLineLength) {
-				let pos = maxLineLength;
-				while (pos > 0 && line[pos] !== " ") {
-					pos--;
-				}
-				if (pos === 0) {
-					pos = maxLineLength;
-				}
-				result.push(line.substring(0, pos));
-				line = line.substring(pos).trim();
-			}
-			result.push(line);
-		}
-		return result.join("\n");
-	}
+  private static breakLongLines(input: string, maxLineLength: number): string {
+    const lines = input.split("\n");
+    const result = [];
+    for (let line of lines) {
+      while (line.length > maxLineLength) {
+        let pos = maxLineLength;
+        while (pos > 0 && line[pos] !== " ") {
+          pos--;
+        }
+        if (pos === 0) {
+          pos = maxLineLength;
+        }
+        result.push(line.substring(0, pos));
+        line = line.substring(pos).trim();
+      }
+      result.push(line);
+    }
+    return result.join("\n");
+  }
 }

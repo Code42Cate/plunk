@@ -79,11 +79,11 @@ export class V1 {
 			redis.del(Keys.Contact.email(project.id, contact.email));
 		} else {
 			if (subscribed !== null && contact.subscribed !== subscribed) {
-				contact = await prisma.contact.update({where: {id: contact.id}, data: {subscribed}});
-		
+				contact = await prisma.contact.update({ where: { id: contact.id }, data: { subscribed } });
+
 				redis.del(Keys.Contact.id(contact.id));
 				redis.del(Keys.Contact.email(project.id, contact.email));
-			  }
+			}
 		}
 
 		if (data) {
@@ -201,7 +201,7 @@ export class V1 {
 					...JSON.parse(contact.data ?? "{}"),
 				},
 			});
-
+			console.log("MANUAL SERVICE")
 			const { messageId } = await EmailService.send({
 				from: {
 					name: name ?? project.from ?? project.name,

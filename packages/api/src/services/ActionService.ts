@@ -118,6 +118,7 @@ export class ActionService {
 					},
 				});
 
+				console.log("ACTION SERVICE")
 				const { messageId } = await EmailService.send({
 					from: {
 						name: action.template.from ?? project.from ?? project.name,

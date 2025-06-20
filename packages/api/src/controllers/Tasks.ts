@@ -82,6 +82,7 @@ export class Tasks {
 				}));
 			}
 
+			console.log("TASK SERVICE")
 			const { messageId } = await EmailService.send({
 				from: {
 					name,

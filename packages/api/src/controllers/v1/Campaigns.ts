@@ -105,6 +105,7 @@ export class Campaigns {
 		} else {
 			const members = await ProjectService.memberships(project.id);
 
+			console.log("CAMPAIGN SERVICE")
 			await EmailService.send({
 				from: {
 					name: project.from ?? project.name,
