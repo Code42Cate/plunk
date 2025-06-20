@@ -201,7 +201,7 @@ export class V1 {
 					...JSON.parse(contact.data ?? "{}"),
 				},
 			});
-			console.log("MANUAL SERVICE")
+			signale.info("MANUAL SERVICE")
 			const { messageId } = await EmailService.send({
 				from: {
 					name: name ?? project.from ?? project.name,

@@ -5,6 +5,7 @@ import { ContactService } from "./ContactService";
 import { EmailService } from "./EmailService";
 import { Keys } from "./keys";
 import { wrapRedis } from "./redis";
+import signale from "signale";
 
 export class ActionService {
 	/**
@@ -118,7 +119,7 @@ export class ActionService {
 					},
 				});
 
-				console.log("ACTION SERVICE")
+				signale.info("ACTION SERVICE")
 				const { messageId } = await EmailService.send({
 					from: {
 						name: action.template.from ?? project.from ?? project.name,

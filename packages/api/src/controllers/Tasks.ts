@@ -82,7 +82,7 @@ export class Tasks {
 				}));
 			}
 
-			console.log("TASK SERVICE")
+			signale.info("TASK SERVICE")
 			const { messageId } = await EmailService.send({
 				from: {
 					name,

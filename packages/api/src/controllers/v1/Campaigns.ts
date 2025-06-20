@@ -12,6 +12,7 @@ import { MembershipService } from "../../services/MembershipService";
 import { ProjectService } from "../../services/ProjectService";
 import { Keys } from "../../services/keys";
 import { redis } from "../../services/redis";
+import signale from "signale";
 
 @Controller("campaigns")
 export class Campaigns {
@@ -105,7 +106,7 @@ export class Campaigns {
 		} else {
 			const members = await ProjectService.memberships(project.id);
 
-			console.log("CAMPAIGN SERVICE")
+			signale.info("CAMPAIGN SERVICE")
 			await EmailService.send({
 				from: {
 					name: project.from ?? project.name,

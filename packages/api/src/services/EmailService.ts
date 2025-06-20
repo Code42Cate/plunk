@@ -1,6 +1,7 @@
 import mjml2html from "mjml";
 import { APP_URI, AWS_SES_CONFIGURATION_SET } from "../app/constants";
 import { ses } from "../util/ses";
+import signale from "signale";
 
 export class EmailService {
   public static async send({
@@ -34,7 +35,7 @@ export class EmailService {
       unsubscribeLink = `List-Unsubscribe: <https://${APP_URI}/unsubscribe/${unsubscribeId}>`;
     }
 
-    console.log(`INFO: Sending email with subject: ${content.subject} to ${to.join(", ")}`);
+    signale.info(`INFO: Sending email with subject: ${content.subject} to ${to.join(", ")}`);
 
     const rawMessage = `From: ${from.name} <${from.email}>
 To: ${to.join(", ")}
