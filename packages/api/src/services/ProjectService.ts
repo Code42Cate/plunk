@@ -145,6 +145,7 @@ export class ProjectService {
 		const itemsPerPage = 10;
 		const skip = (page - 1) * itemsPerPage;
 
+		// Fetch only what we need with proper pagination
 		const triggers = await prisma.trigger.findMany({
 			where: { contact: { projectId: id } },
 			include: {
@@ -159,8 +160,14 @@ export class ProjectService {
 						name: true,
 					},
 				},
+				action: {
+					select: {
+						name: true,
+					},
+				},
 			},
 			orderBy: { createdAt: "desc" },
+			take: itemsPerPage * 2, // Fetch extra to ensure we have enough after merging
 		});
 
 		const emails = await prisma.email.findMany({
@@ -174,6 +181,7 @@ export class ProjectService {
 				},
 			},
 			orderBy: { createdAt: "desc" },
+			take: itemsPerPage * 2, // Fetch extra to ensure we have enough after merging
 		});
 
 		const combined = [...triggers, ...emails];
@@ -229,6 +237,8 @@ export class ProjectService {
 					include: {
 						triggers: {
 							select: { id: true, createdAt: true, contactId: true },
+							orderBy: { createdAt: "desc" },
+							take: 100, // Limit triggers per event to prevent memory issues
 						},
 					},
 					orderBy: { createdAt: "desc" },
